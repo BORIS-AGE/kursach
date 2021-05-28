@@ -23,6 +23,7 @@ class FilesReader(private val dir: String, private val fileStartIndex: Int, priv
         if (leftItems != 0) {
             resList.addAll(getFileList(path, fileStartIndex + fileCount - leftItems, leftItems))
         }
+        firstCountDownLatch.countDown()
 
         return resList
     }

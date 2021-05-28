@@ -10,9 +10,11 @@ val allFilesArray = ArrayList<String>()
 const val startIndex = 200 //(12500 / 50) * (33 + 30 - 1)
 const val THREAD_COUNT = 5
 val countDownLatch = CountDownLatch(THREAD_COUNT)
+val firstCountDownLatch = CountDownLatch(THREAD_COUNT)
 
 fun main(args: Array<String>) {
     collectAllFiles()
+    firstCountDownLatch.await()
     substringForAllIndexes()
     countDownLatch.await()
 
