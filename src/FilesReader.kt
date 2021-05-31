@@ -17,6 +17,9 @@ class FilesReader(private val dir: String, private val fileStartIndex: Int, priv
             thread.start()
             thread.join()
             temp += filesForEachThread
+            if (i != THREAD_COUNT) {
+                firstCountDownLatch.countDown()
+            }
         }
 
         val leftItems = fileCount % THREAD_COUNT

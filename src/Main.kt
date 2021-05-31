@@ -8,17 +8,42 @@ val invertedIndexMap = ConcurrentHashMap<String, ArrayList<String>>()
 val allFilesArray = ArrayList<String>()
 
 const val startIndex = 200 //(12500 / 50) * (33 + 30 - 1)
-const val THREAD_COUNT = 5
-val countDownLatch = CountDownLatch(THREAD_COUNT)
-val firstCountDownLatch = CountDownLatch(THREAD_COUNT)
+var THREAD_COUNT = 1
+var countDownLatch = CountDownLatch(THREAD_COUNT)
+var firstCountDownLatch = CountDownLatch(THREAD_COUNT)
 
 fun main(args: Array<String>) {
-    collectAllFiles()
-    firstCountDownLatch.await()
-    substringForAllIndexes()
-    countDownLatch.await()
+    runTest()
+}
 
-    println(search("Creative").joinToString { "$it\n" })
+fun runTest() {
+    for (i in 1..10) {
+
+        THREAD_COUNT = i
+        countDownLatch = CountDownLatch(THREAD_COUNT)
+        firstCountDownLatch = CountDownLatch(THREAD_COUNT)
+
+        println("For $i threads")
+
+        var startTime = System.currentTimeMillis()
+        collectAllFiles()
+        println("time for files collection ${System.currentTimeMillis() - startTime}")
+        startTime = System.currentTimeMillis()
+        firstCountDownLatch.await()
+        substringForAllIndexes()
+        println("time for index creation ${System.currentTimeMillis() - startTime}")
+        countDownLatch.await()
+
+        startTime = System.currentTimeMillis()
+        val searchRes = search("Creative")
+        println(searchRes.joinToString { "$it\n" })
+        println("time for search ${System.currentTimeMillis() - startTime}")
+
+        println("\n\n")
+        allFilesArray.clear()
+        invertedIndexMap.clear()
+    }
+
 }
 
 fun search(searchValue: String): List<String> =
@@ -35,7 +60,9 @@ fun substringForAllIndexes() {
                     i * fileCountForEachThread + fileCountForEachThread
                 )
             )
-            countDownLatch.countDown()
+            if (i != THREAD_COUNT - 1) {
+                countDownLatch.countDown()
+            }
         }
         thread.start()
         thread.join()
@@ -45,6 +72,7 @@ fun substringForAllIndexes() {
     if (leftItems != 0) {
         createInvertedIndexMap(allFilesArray.subList(allFilesArray.size - leftItems, allFilesArray.size))
     }
+    countDownLatch.countDown()
 }
 
 fun createInvertedIndexMap(filesList: List<String>) {
